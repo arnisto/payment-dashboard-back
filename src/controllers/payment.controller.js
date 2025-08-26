@@ -2,7 +2,9 @@ const db = require("../models");
 
 exports.getAllPayments = async (req, res, next) => {
   try {
-    const payments = await db.Payment.findAll({ include: db.Bill });
+    const payments = await db.Payment.findAll({
+      include: [{ model: db.Bill, as: "bill" }],
+    });
     res.json(payments);
   } catch (err) {
     next(err);
@@ -12,7 +14,7 @@ exports.getAllPayments = async (req, res, next) => {
 exports.getPaymentById = async (req, res, next) => {
   try {
     const payment = await db.Payment.findByPk(req.params.id, {
-      include: db.Bill,
+      include: [{ model: db.Bill, as: "bill" }],
     });
     if (!payment) return res.status(404).json({ message: "Payment not found" });
     res.json(payment);
@@ -54,6 +56,7 @@ exports.createPayment = async (req, res, next) => {
       action: "create",
       user_id: bill.user_id,
       timestamp: new Date(),
+      details: { bill_id, amount, method, payment_date },
     });
 
     res.status(201).json(payment);
@@ -67,6 +70,7 @@ exports.updatePayment = async (req, res, next) => {
     const payment = await db.Payment.findByPk(req.params.id);
     if (!payment) return res.status(404).json({ message: "Payment not found" });
 
+    const before = payment.toJSON();
     await payment.update(req.body);
 
     await db.AuditLog.create({
@@ -75,6 +79,7 @@ exports.updatePayment = async (req, res, next) => {
       action: "update",
       user_id: req.body.user_id || payment.bill_id,
       timestamp: new Date(),
+      details: { before, after: payment.toJSON() },
     });
 
     res.json(payment);
@@ -94,6 +99,7 @@ exports.deletePayment = async (req, res, next) => {
       action: "delete",
       user_id: payment.bill_id,
       timestamp: new Date(),
+      details: payment.toJSON(),
     });
 
     await payment.destroy();

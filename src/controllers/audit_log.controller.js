@@ -2,7 +2,11 @@ const db = require("../models");
 
 exports.getAllLogs = async (req, res, next) => {
   try {
-    const logs = await db.AuditLog.findAll();
+    const { entity_type, user_id } = req.query;
+    const where = {};
+    if (entity_type) where.entity_type = entity_type;
+    if (user_id) where.user_id = user_id;
+    const logs = await db.AuditLog.findAll({ where, order: [["timestamp", "DESC"]] });
     res.json(logs);
   } catch (err) {
     next(err);

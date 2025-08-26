@@ -9,4 +9,11 @@ const Bill = sequelize.define("Bill", {
   status: DataTypes.STRING, // 'pending', 'partialy_paid', 'paid', 'canceled'
 });
 
+Bill.associate = (models) => {
+  Bill.hasMany(models.Payment, {
+    foreignKey: "bill_id",
+    as: "payments",
+  });
+};
+
 module.exports = Bill;

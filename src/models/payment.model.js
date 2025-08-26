@@ -7,4 +7,11 @@ const Payment = sequelize.define("Payment", {
   payment_date: DataTypes.DATE,
 });
 
+Payment.associate = (models) => {
+  Payment.belongsTo(models.Bill, {
+    foreignKey: "bill_id",
+    as: "bill",
+  });
+};
+
 module.exports = Payment;

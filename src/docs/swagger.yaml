@@ -2,15 +2,113 @@ openapi: 3.0.0
 info:
   title: Payment Dashboard API
   version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Local server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        role:
+          type: string
+    Bill:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        client_name:
+          type: string
+        client_email:
+          type: string
+        amount_total:
+          type: number
+        currency:
+          type: string
+        status:
+          type: string
+    Payment:
+      type: object
+      properties:
+        id:
+          type: integer
+        bill_id:
+          type: integer
+        amount:
+          type: number
+        method:
+          type: string
+        payment_date:
+          type: string
+          format: date-time
+    Permission:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        section:
+          type: string
+        can_read:
+          type: boolean
+        can_write:
+          type: boolean
+        can_delete:
+          type: boolean
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        entity_type:
+          type: string
+        entity_id:
+          type: integer
+        action:
+          type: string
+        user_id:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+        details:
+          type: object
+security:
+  - bearerAuth: []
 paths:
   /api/bills:
     get:
       summary: Get all bills
+      tags: [Bills]
       responses:
         "200":
           description: List of bills
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Bill'
     post:
       summary: Create a new bill
+      tags: [Bills]
       requestBody:
         required: true
         content:
@@ -31,3 +129,88 @@ paths:
       responses:
         "201":
           description: Bill created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bill'
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/payments:
+    get:
+      summary: Get all payments
+      tags: [Payments]
+      responses:
+        "200":
+          description: List of payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payment'
+    post:
+      summary: Create a new payment
+      tags: [Payments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bill_id: { type: integer }
+                amount: { type: number }
+                method: { type: string }
+                payment_date: { type: string, format: date-time }
+      responses:
+        "201":
+          description: Payment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+  /api/users/login:
+    post:
+      summary: Login
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        "200":
+          description: JWT token and user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+                  user: { $ref: '#/components/schemas/User' }
+        "401":
+          description: Invalid credentials
+  /api/users/reset-password:
+    post:
+      summary: Reset password with admin code
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                newPassword: { type: string }
+                adminCode: { type: string }
+      responses:
+        "200": { description: Password reset successful }
