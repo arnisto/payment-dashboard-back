@@ -1,0 +1,33 @@
+openapi: 3.0.0
+info:
+  title: Payment Dashboard API
+  version: 1.0.0
+paths:
+  /api/bills:
+    get:
+      summary: Get all bills
+      responses:
+        "200":
+          description: List of bills
+    post:
+      summary: Create a new bill
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                client_name:
+                  type: string
+                client_email:
+                  type: string
+                amount_total:
+                  type: number
+                currency:
+                  type: string
+                status:
+                  type: string
+      responses:
+        "201":
+          description: Bill created
